@@ -34,10 +34,6 @@ const App = () => {
     if (newVotes[selected] > newVotes[maxVotesIdx]) {
       setMaxVotesIdx(selected)
     }
-    // const newMaxVotes = Math.max(newVotes[selected], newVotes[maxVotesIdx])
-    // console.log("max votes ", newMaxVotes)
-    // const newMaxVotesIdx = newVotes.indexOf(newMaxVotes)
-    // setMaxVotesIdx(newMaxVotesIdx)
   }
   // console.log(maxVotesIdx)
 
