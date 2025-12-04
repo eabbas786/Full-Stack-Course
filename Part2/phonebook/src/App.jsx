@@ -2,11 +2,15 @@
 
 
 import personServices from './services/persons'
+
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Person from './components/Persons'
+import SuccessNotification from './components/SuccessNotification'
+
 
 import { useState, useEffect } from 'react'
+import ErrorNotification from './components/ErrorNotification'
 
 
 
@@ -15,22 +19,20 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchVal, setSearchVal] = useState('')
+  const [successMessage, setSuccessMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
+  // fetches all names stored in database from the server
   useEffect(() => {
-    console.log('effect')
     personServices
       .getAll()
-      .then(initialPersons => {
-        console.log('promise fulfilled')
-        setPersons(initialPersons)
-      })
+      .then(initialPersons => setPersons(initialPersons))
   }, [])
 
   // console.log(persons.length, 'persons rendered')
 
   const addPerson = (event) => {
     event.preventDefault()
-
 
     const original = persons.find(person => person.name === newName)
     if (original) {
@@ -41,6 +43,24 @@ const App = () => {
         .then(returnedPerson => {
           setPersons(persons.map(p => p.id === original.id ? returnedPerson : p))
         })
+        .then(() => {
+          setSuccessMessage(
+            `Replaced number of ${newName} successfully.`
+          )
+          setTimeout(() => {
+            setSuccessMessage(null)
+          }, 5000)
+        })
+        .catch((error) => {
+          setErrorMessage(
+            `Information of ${newName} has already been removed from server`
+          )
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+        })
+
+
 
     }
     else {
@@ -55,6 +75,14 @@ const App = () => {
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
         })
+        .then(() => {
+          setSuccessMessage(
+            `Added ${newName} successfully.`
+          )
+          setTimeout(() => {
+            setSuccessMessage(null)
+          }, 5000)
+        })
     }
 
     setNewName('') // restore state of newName
@@ -63,12 +91,19 @@ const App = () => {
   }
 
   const deletePerson = (id, name) => {
-    console.log(id)
-    console.log(name)
     window.confirm(`Delete ${name}?`)
     personServices
       .remove(id)
-      .then(setPersons(persons.filter(p => p.id != id)))
+      .then(() => setPersons(persons.filter(p => p.id != id)))
+      .catch((error) => {
+        setErrorMessage(
+          `Information of ${name} has already been removed from server`
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+      })
+
 
   }
 
@@ -95,6 +130,9 @@ const App = () => {
   return (
     <div>
       <h1>Phonebook</h1>
+
+      <SuccessNotification message={successMessage} />
+      <ErrorNotification message={errorMessage} />
 
       <Filter value={searchVal} onChange={handleSearchChange} />
 
