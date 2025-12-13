@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+app.use(express.json())
 
 let persons = [
     {
@@ -24,12 +25,15 @@ let persons = [
     }
 ]
 
+
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
 })
+
 app.get('/api/persons', (request, response) => {
     response.json(persons)
 })
+
 app.get('/info', (request, response) => {
     const currentDate = new Date();
     const gmtString = currentDate.toUTCString();
@@ -38,9 +42,50 @@ app.get('/info', (request, response) => {
         <p> ${gmtString} </p> 
         </div>`
     )
+})
 
+app.get('/api/persons/:id', (request, response) => {
+    const id = request.params.id
+    const person = persons.find(p => p.id === id)
+    if (person) {
+        response.json(person)
+    }
+    else {
+        response.status(404).end()
+    }
 
+})
 
+app.delete('/api/persons/:id', (request, response) => {
+    const id = request.params.id
+    persons = persons.filter(p => p.id !== id)
+
+    response.status(204).end()
+})
+
+app.post('/api/persons', (request, response) => {
+    const randomId = Math.floor(Math.random() * 100000)
+
+    const person = request.body
+    // console.log(person)
+
+    if (!person.name || !person.number) {
+        return response.status(400).json({
+            error: 'content missing'
+        })
+    }
+    const found = persons.find(p => p.name === person.name)
+    if (found) {
+        return response.status(400).json({
+            error: 'name is already in phonebook'
+        })
+    }
+
+    person.id = String(randomId)
+
+    persons = persons.concat(person)
+
+    response.json(person)
 })
 const PORT = 3001
 app.listen(PORT, () => {
